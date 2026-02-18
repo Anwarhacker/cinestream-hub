@@ -14,7 +14,9 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { signIn } = useAuth();
+  const [resending, setResending] = useState(false);
+  const [needsConfirmation, setNeedsConfirmation] = useState(false);
+  const { signIn, resendConfirmation } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -24,13 +26,35 @@ const Login = () => {
       return;
     }
     setLoading(true);
+    setNeedsConfirmation(false);
     const { error } = await signIn(email, password);
     setLoading(false);
     if (error) {
-      toast.error(error.message);
+      if (error.message.includes("Email not confirmed")) {
+        setNeedsConfirmation(true);
+        toast.error("Please confirm your email address to login");
+      } else {
+        toast.error(error.message);
+      }
     } else {
       toast.success('Welcome back!');
       navigate('/dashboard');
+    }
+  };
+
+  const handleResendConfirmation = async () => {
+    if (!email) {
+      toast.error("Please enter your email address");
+      return;
+    }
+    setResending(true);
+    const { error } = await resendConfirmation(email);
+    setResending(false);
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success("Confirmation email sent! Please check your inbox.");
+      setNeedsConfirmation(false);
     }
   };
 
@@ -103,6 +127,18 @@ const Login = () => {
                 Sign Up
               </Link>
             </p>
+            {needsConfirmation && (
+              <div className="mt-4 text-center">
+                <Button 
+                  variant="outline" 
+                  onClick={handleResendConfirmation}
+                  disabled={resending}
+                  className="w-full"
+                >
+                  {resending ? "Sending..." : "Resend Confirmation Email"}
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
       </motion.div>

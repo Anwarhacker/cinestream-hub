@@ -23,10 +23,13 @@ serve(async (req) => {
     const category = url.searchParams.get('category') || 'popular';
     const query = url.searchParams.get('query') || '';
     const page = url.searchParams.get('page') || '1';
+    const movieId = url.searchParams.get('movieId');
 
     let tmdbUrl: string;
 
-    if (query) {
+    if (movieId) {
+      tmdbUrl = `https://api.themoviedb.org/3/movie/${movieId}?api_key=${TMDB_API_KEY}&append_to_response=credits,videos,similar`;
+    } else if (query) {
       tmdbUrl = `https://api.themoviedb.org/3/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}&page=${page}`;
     } else if (category === 'trending') {
       tmdbUrl = `https://api.themoviedb.org/3/trending/movie/week?api_key=${TMDB_API_KEY}&page=${page}`;
